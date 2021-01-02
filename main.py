@@ -70,7 +70,7 @@ def export_org(clips):
           f.write('#+title: {}\n\n'.format(entry))
           f.close()
        with open(filepath, 'a+') as f:
-          for clip in db[entry]:
+          for index, clip in enumerate(db[entry]):
              org_timestamp = strptime(clip['timestamp'])
              org_timestamp = strftime('%Y-%m-%d %a %H:%M', org_timestamp)
              if clip['type'] == 'note':
@@ -86,7 +86,15 @@ def export_org(clips):
                 ':{}: {}'.format('PAGE', clip['page'][0]),
                 ':END:',
                 clip['highlight']
-             )) + '\n\n'
+             ))
+                if index-1 < len(db[entry]):
+                   if db[entry][index + 1]['type'] == 'note':
+                      clip_str = clip_str + '\n'
+                   else:
+                      clip_str = clip_str + '\n\n'
+                else:
+                   clip_str = clip_str + '\n\n'
+             print(len(db[entry]), index-1)
              f.write(clip_str)
 
 def export_json():
