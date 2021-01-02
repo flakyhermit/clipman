@@ -2,6 +2,7 @@
 
 import re
 from json import dumps, loads
+from time import strptime, strftime
 import os
 # clipman - the Kindle clippings importer
 
@@ -63,9 +64,27 @@ def export_org(clips):
           db[clip_key] = []
        db[clip_key].append(clip)
     for entry in db:
-       with open(os.path.join(EXPORTPATH, entry) + '.org', 'a+') as f:
+       filepath = os.path.join(EXPORTPATH, entry) + '.org'
+       if not os.path.isfile(filepath):
+          f = open(filepath, 'w+')
+          f.write('#+title: {}\n\n'.format(entry))
+          f.close()
+       with open(filepath, 'a+') as f:
           for clip in db[entry]:
-             clip_str = "\n* {} on {} at {}\n{}".format(clip['type'].title(), clip['location'][0], clip['timestamp'], clip['highlight'])
+             org_timestamp = strptime(clip['timestamp'])
+             org_timestamp = strftime('%Y-%m-%d %a %H:%M', org_timestamp)
+             clip_str = '\n'.join((
+                '* {} at location {}'.format(clip['type'].title(), clip['location'][0]),
+                ':PROPERTIES:',
+                # TODO Simplify this
+                ':{}: {}'.format('TYPE', clip['type']),
+                ':{}: {}'.format('CREATED', '[' + org_timestamp + ']'),
+                ':{}: {}'.format('LOCATION', clip['location'][0]),
+                ':{}: {}'.format('PAGE', clip['page'][0]),
+                ':END:',
+                clip['highlight']
+             )) + '\n\n'
+
              f.write(clip_str)
 
 def export_json():
@@ -136,7 +155,6 @@ for result in results:
         page = [result.group('posx'), result.group('posy')]
         loc = [result.group('locx'), result.group('locy')]
     # extracting timestamp
-    # strptime('Fri Mar 01 23:38:40 2019')
     timestring = '{weekday} {month} {day} {hour}:{minute}:{second} {year}'
     timestring = timestring.format(weekday=result.group('wday'), \
                                    month=result.group('month'), \
