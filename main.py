@@ -73,7 +73,10 @@ def export_org(clips):
           for clip in db[entry]:
              org_timestamp = strptime(clip['timestamp'])
              org_timestamp = strftime('%Y-%m-%d %a %H:%M', org_timestamp)
-             clip_str = '\n'.join((
+             if clip['type'] == 'note':
+                clip_str = '\n'.join(('** Note', clip['highlight'])) + '\n\n'
+             else:
+                clip_str = '\n'.join((
                 '* {} at location {}'.format(clip['type'].title(), clip['location'][0]),
                 ':PROPERTIES:',
                 # TODO Simplify this
@@ -84,7 +87,6 @@ def export_org(clips):
                 ':END:',
                 clip['highlight']
              )) + '\n\n'
-
              f.write(clip_str)
 
 def export_json():
@@ -176,7 +178,7 @@ print("# clips read:", len(clips))
 clips = remove_duplicates(clips)
 print("# clips after duplicate removal:", len(clips))
 db = read_db()
-print("# clips in database:", sum([len(entry) for entry in db]))
+# print("# clips in database:", sum([len(entry) for entry in db]))
 export_org(clips)
 # write_db(clips)
 
